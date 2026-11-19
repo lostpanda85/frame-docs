@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use or build on these notes, please credit them as below and link back to the repository."
+type: software
+title: "Steam Frame developer notes"
+abstract: >-
+  Unofficial developer documentation for the Steam Frame VR headset's
+  operating system (SteamOS, codename Deckard): OpenXR runtime, graphics,
+  audio, network services, D-Bus APIs, SteamVR tooling, hardware access,
+  controllers, power, wireless, compatibility layers, developer workflow,
+  systemd services, kernel, boot sequence and firmware. Every statement is based on something observed
+  read-only on a retail headset.
+authors:
+  - alias: lostpanda85
+    website: "https://github.com/lostpanda85"
+repository-code: "https://github.com/lostpanda85/frame-docs"
+url: "https://lostpanda85.github.io/frame-docs/"
+license: MIT
+keywords:
+  - Steam Frame
+  - SteamOS
+  - SteamVR
+  - Valve
+  - Deckard
+  - VR headset
+  - developer documentation
+  - Linux
+  - D-Bus
+  - U-Boot
+  - firmware

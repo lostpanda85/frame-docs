@@ -1,0 +1,32 @@
+{%- comment -%}
+  Previous / next links in sidebar order (nav_order from _config.yml defaults),
+  then the site credit line. Rendered at the bottom of every page by Just the Docs.
+{%- endcomment -%}
+{%- assign pn_pages = site.html_pages | where_exp: "p", "p.nav_order != nil" | sort: "nav_order" -%}
+{%- assign pn_prev = nil -%}
+{%- assign pn_next = nil -%}
+{%- assign pn_found = false -%}
+{%- for p in pn_pages -%}
+  {%- if pn_found -%}
+    {%- assign pn_next = p -%}
+    {%- break -%}
+  {%- elsif p.url == page.url -%}
+    {%- assign pn_found = true -%}
+  {%- else -%}
+    {%- assign pn_prev = p -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- unless pn_found -%}
+  {%- assign pn_prev = nil -%}
+{%- endunless -%}
+{%- if pn_prev or pn_next %}
+<nav class="page-nav" aria-label="Previous and next page">
+  {%- if pn_prev %}
+  <a class="page-nav-prev" href="{{ pn_prev.url | relative_url }}"><span>Previous</span>{{ pn_prev.title }}</a>
+  {%- endif %}
+  {%- if pn_next %}
+  <a class="page-nav-next" href="{{ pn_next.url | relative_url }}"><span>Next</span>{{ pn_next.title }}</a>
+  {%- endif %}
+</nav>
+{%- endif %}
+<p class="text-small text-grey-dk-100 mb-0"><a href="https://github.com/lostpanda85/frame-docs">Steam Frame developer notes</a> by <a href="https://github.com/lostpanda85">lostpanda85</a> · Surveyed on SteamOS 0.5.9 (build 20261113.6134720), November 2026 · <a href="https://github.com/lostpanda85/frame-docs/blob/main/LICENSE">MIT licensed</a></p>

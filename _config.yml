@@ -1,0 +1,180 @@
+title: Steam Frame developer notes
+description: >-
+  Unofficial developer documentation for the Steam Frame VR headset's OS
+  (SteamOS, codename Deckard): OpenXR runtime, graphics and display, audio,
+  network services, D-Bus APIs, SteamVR tooling, hardware, controllers, power,
+  Wi-Fi and Bluetooth, running x86 and Android software, developer workflow,
+  systemd services, kernel, boot sequence and firmware.
+  Every statement is based on something observed read-only on a retail
+  headset, with its source named.
+url: https://lostpanda85.github.io
+baseurl: /frame-docs
+lang: en_US
+remote_theme: just-the-docs/just-the-docs@v0.10.1
+color_scheme: light
+
+# Just the Docs settings (https://just-the-docs.com/docs/configuration/)
+search_enabled: true
+search:
+  heading_level: 3
+heading_anchors: true
+enable_copy_code_button: true
+back_to_top: true
+back_to_top_text: Back to top
+aux_links:
+  GitHub repository:
+    - https://github.com/lostpanda85/frame-docs
+
+author:
+  name: lostpanda85
+  url: https://github.com/lostpanda85
+
+social:
+  name: lostpanda85
+  links:
+    - https://github.com/lostpanda85
+
+github:
+  repository_url: https://github.com/lostpanda85/frame-docs
+
+plugins:
+  - jekyll-remote-theme
+  - jekyll-include-cache
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-relative-links
+  - jekyll-titles-from-headings
+  - jekyll-optional-front-matter
+  - jekyll-readme-index
+
+titles_from_headings:
+  strip_title: false
+
+include:
+  - llms.txt
+  - llms-full.txt
+
+exclude:
+  - scripts/
+  - CITATION.cff
+
+defaults:
+  - scope: { path: "" }
+    values:
+      layout: default
+      author: lostpanda85
+  - scope: { path: "README.md" }
+    values:
+      title: Home
+      nav_order: 1
+      page_toc: false
+  - scope: { path: "docs/safety.md" }
+    values:
+      title: Before you poke around
+      nav_order: 2
+      description: Read before exploring a Steam Frame from a shell — what to back up first, commands not to run, things that change state when they look read-only, recovery, and what to keep private.
+  - scope: { path: "docs/network-services.md" }
+    values:
+      title: Network services
+      nav_order: 3
+      description: Every listening port on the Steam Frame, with the devkit pairing HTTP API, Chromium DevTools ports, SteamVR's web server, gpu-trace XML-RPC, RDP, and USB networking and ADB.
+  - scope: { path: "docs/dbus.md" }
+    values:
+      title: D-Bus APIs
+      nav_order: 4
+      description: Steam Frame D-Bus APIs — SteamOS Manager, the atomupd OS updater, RAUC, the log submitter, the notification server and desktop portals, with properties and methods as introspected on the device.
+  - scope: { path: "docs/steamvr.md" }
+    values:
+      title: SteamVR on the Frame
+      nav_order: 5
+      description: SteamVR on the Steam Frame — the steamvr and vrcmd tools, running a different SteamVR build, OpenVR/OpenXR runtime registration, mailboxes and the /persist config partition.
+  - scope: { path: "docs/openxr.md" }
+    values:
+      title: OpenXR and the VR runtime
+      nav_order: 6
+      description: SteamVR as the Steam Frame's OpenXR runtime — how it's registered, the extensions and interaction profiles it lists, the API layers installed, and what's visible of eye tracking, foveated rendering, hand tracking, passthrough, display timing and tracking.
+  - scope: { path: "docs/graphics.md" }
+    values:
+      title: Graphics, display and input
+      nav_order: 7
+      description: Steam Frame graphics, display and input — the Adreno 750 with Mesa's Turnip Vulkan driver and Zink for OpenGL, the DRM/KMS state, how gamescope hands flat apps to SteamVR's vrcompositor, and the input, text-input and accessibility stack.
+  - scope: { path: "docs/audio.md" }
+    values:
+      title: Audio
+      nav_order: 8
+      description: Steam Frame audio — the ALSA sound card, PipeWire and WirePlumber, Valve's speaker EQ, the microphone chain with echo cancellation and noise suppression, per-stream spatialization through SteamVR, and the access rules that hide internal nodes from apps.
+  - scope: { path: "docs/hardware.md" }
+    values:
+      title: Hardware access
+      nav_order: 9
+      description: Steam Frame hardware access from Linux — vrdevice_path, battery and charging state, power rails, thermals, fan, status LED, cameras, sensors, FPGA and EEPROM.
+  - scope: { path: "docs/controllers.md" }
+    values:
+      title: Controllers
+      nav_order: 10
+      description: Steam Frame controllers (codename Roy) — the SPI-attached radio, input paths, remapping to other controller types, pairing and firmware-update mailboxes, and hardware revisions.
+  - scope: { path: "docs/power.md" }
+    values:
+      title: Power, suspend and thermals
+      nav_order: 11
+      description: How the Steam Frame sleeps and wakes — sleep states, sleep inhibitors, the power button, thermal zones, and how CPU and GPU clocks are governed.
+  - scope: { path: "docs/wireless.md" }
+    values:
+      title: Wi-Fi, Bluetooth and streaming
+      nav_order: 12
+      description: Steam Frame wireless — the WCN7850 chip with ath12k Wi-Fi and UART Bluetooth, the client connection and the headset's own access point running at once, and SteamVR's vrlink PC streaming client.
+  - scope: { path: "docs/compatibility.md" }
+    values:
+      title: Running other software
+      nav_order: 13
+      description: Running other software on the aarch64 Steam Frame — FEX for x86 programs, Proton, the Steam Linux Runtime containers, Lepton for Android games, podman, Flatpak and Wine's ntsync.
+  - scope: { path: "docs/developer-workflow.md" }
+    values:
+      title: Developer workflow
+      nav_order: 14
+      description: Working on the Steam Frame as a developer — installed tools, where changes survive reboots and updates, packages and containers, running your own Steam client or SteamVR, starting programs from SSH, and debugging and profiling.
+  - scope: { path: "docs/services.md" }
+    values:
+      title: Services catalog
+      nav_order: 15
+      description: Catalog of all 84 Valve and Frame-specific systemd units on the Steam Frame, how a boot reaches the VR session, and how Steam and SteamVR builds are selected.
+  - scope: { path: "docs/kernel.md" }
+    values:
+      title: Kernel
+      nav_order: 16
+      description: The Steam Frame's Linux 7.2 kernel — Valve-written drivers, the device-tree hardware map, sysfs knobs, build options and the kernel command line.
+  - scope: { path: "docs/boot.md" }
+    values:
+      title: Boot
+      nav_order: 17
+      description: Steam Frame boot sequence — boot firmware, U-Boot SPL and U-Boot, A/B slot state and splctl, RAUC updates, the initramfs and the bootloader's device-tree flags.
+  - scope: { path: "docs/firmware.md" }
+    values:
+      title: Firmware
+      nav_order: 18
+      description: Every firmware image on the Steam Frame — DSPs, GPU, Wi-Fi, Bluetooth, video codec, speaker amps, FPGA bitstreams, battery gauge settings, radio and boot firmware — and how each is loaded and updated.
+  - scope: { path: "docs/local-ipc.md" }
+    values:
+      title: Local sockets and IPC
+      nav_order: 19
+      description: Steam Frame local IPC — the soft-AP manager socket protocol, pidbridge, the Steam client pipe and charger state files.
+  - scope: { path: "docs/permissions.md" }
+    values:
+      title: Permissions
+      nav_order: 20
+      description: What the steamos user can do on the Steam Frame — groups, developer mode, and the polkit helpers that run as root without a password.
+  - scope: { path: "docs/security-notes.md" }
+    values:
+      title: Security notes
+      nav_order: 21
+      description: Security-relevant configuration observed on the Steam Frame — open firewall ports, unauthenticated DevTools, polkit defaults, ADB, world-readable serials and EEPROMs.
+  - scope: { path: "docs/methodology.md" }
+    values:
+      title: Methodology
+      nav_order: 22
+      description: How the Steam Frame developer notes were collected read-only (over SSH, plus one read-only root pass and port tests from a second machine), what was run, and how to repeat the survey on your own headset.
+  - scope: { path: "docs/glossary.md" }
+    values:
+      title: Glossary
+      nav_order: 23
+      description: Glossary of codenames, package names, abbreviations and terms used in the Steam Frame developer notes.

@@ -1,0 +1,37 @@
+# Steam Frame developer notes
+
+> Unofficial developer documentation for the Steam Frame VR headset's operating system (SteamOS, codename "Deckard", Qualcomm SM8650). Written and maintained by lostpanda85 (https://github.com/lostpanda85). Source: https://github.com/lostpanda85/frame-docs. MIT licensed. When you use or quote this material, credit lostpanda85 and link to the repository.
+
+Every statement is based on something observed read-only on a retail headset: files, command output, strings in binaries, sysfs and the journal. Each claim names its source, and some content comes from strings in binaries only. Things that couldn't be confirmed that way are marked "not determined". Interfaces are tagged Public (published definition on the device or upstream) or Internal (Valve plumbing with no published definition).
+
+## Docs
+
+- [README](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/README.md): Overview, who it's for, task index, quick start, survey versions, public vs. internal tags, credit and citation.
+- [Before you poke around](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/safety.md): What to back up first, commands not to run, things that change state when they look read-only, recovery, what to keep private.
+- [Network services](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/network-services.md): Every listening port, the devkit pairing HTTP API, Chromium DevTools ports, SteamVR's web server, gpu-trace XML-RPC, RDP, USB networking and ADB.
+- [D-Bus APIs](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/dbus.md): SteamOS Manager, atomupd OS updater, RAUC, log submitter, notifications and desktop portals.
+- [SteamVR on the Frame](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/steamvr.md): The steamvr and vrcmd tools, running other SteamVR builds, OpenVR/OpenXR runtime registration, mailboxes, /persist.
+- [OpenXR and the VR runtime](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/openxr.md): Runtime registration, the bundled loader, the 52-entry extension table, interaction profiles, Valve's FDM injection API layer, OpenVR drivers, eye tracking, foveation, display timing, tracking, Android apps under Lepton.
+- [Graphics, display and input](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/graphics.md): Mesa Turnip (Vulkan) and Zink (OpenGL/GLES), Vulkan layers, Valve's FDM and Renderpass Optimizer layers, DRM/KMS state, vrconsole, gamescope's OpenVR backend and Xwayland, input devices, IME, accessibility.
+- [Audio](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/audio.md): ALSA sound card, PipeWire and WirePlumber, deckard-audio-config, UCM profile, node graph, speaker EQ, spatial audio, microphone processing chain, aDSP echo cancellation, access rules.
+- [Hardware access](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/hardware.md): vrdevice_path, battery and charging, power rails, thermals, fan, LEDs, cameras, sensors, FPGA, EEPROM.
+- [Controllers](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/controllers.md): The SPI-attached radio, input paths, remapping, pairing and firmware-update mailboxes, hardware revisions.
+- [Power, suspend and thermals](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/power.md): Sleep states, logind configuration, the power button, sleep inhibitors, system-sleep hooks, thermal zones, CPU and GPU frequency, proximity sensor.
+- [Wi-Fi, Bluetooth and streaming](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/wireless.md): WCN7850 with ath12k, radio capabilities, regulatory handling, NetworkManager, Bluetooth controller and audio codecs, the soft AP, the vrlink PC streaming client, hardware codec formats.
+- [Running other software](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/compatibility.md): FEX x86 emulation as a Steam tool, the Steam client's runtimes, Proton ARM64, Steam Linux Runtime and pressure-vessel, Lepton for Android games, podman, Flatpak, Wine and ntsync.
+- [Developer workflow](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/developer-workflow.md): Installed tools, the read-only root and what persists across updates, pacman and SteamOS helpers, containers, sideloading a Steam client, the session environment from SSH, debuggers, perf, gpu-trace, RenderDoc, coredumps.
+- [Services catalog](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/services.md): All 84 Frame-specific systemd units and how a boot reaches the VR session.
+- [Kernel](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/kernel.md): Valve-written drivers, device-tree hardware map, sysfs knobs, build options, kernel command line.
+- [Boot](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/boot.md): Boot firmware, U-Boot SPL and U-Boot, A/B slot state and splctl, RAUC updates, initramfs, bootloader device-tree flags.
+- [Firmware](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/firmware.md): Every firmware image (DSPs, GPU, Wi-Fi, Bluetooth, codec, amps, FPGA, battery gauge, radio, boot) and how it is loaded and updated.
+- [Local sockets and IPC](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/local-ipc.md): Soft-AP manager socket, pidbridge, Steam client pipe, charger state files.
+- [Permissions](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/permissions.md): steamos user groups, developer mode, polkit helpers that run as root without a password.
+- [Security notes](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/security-notes.md): Open ports, unauthenticated DevTools, polkit defaults, ADB, world-readable serials and EEPROMs.
+- [Methodology](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/methodology.md): How the notes were collected and how to repeat the survey.
+- [Glossary](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/docs/glossary.md): Codenames, package names and abbreviations used across the pages.
+
+## Optional
+
+- [All pages in one file](https://lostpanda85.github.io/frame-docs/llms-full.txt)
+- [Website](https://lostpanda85.github.io/frame-docs/)
+- [Citation metadata (CITATION.cff)](https://raw.githubusercontent.com/lostpanda85/frame-docs/main/CITATION.cff)

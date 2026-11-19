@@ -1,0 +1,26 @@
+<style>
+  .mermaid { margin: 1.5em 0; text-align: center; overflow-x: auto; }
+  .mermaid svg { max-width: 100%; height: auto; }
+  .page-toc { margin: 1.5rem 0; padding: 0.75rem 1rem; border-left: 3px solid #e6e1e8; }
+  .page-toc-title { margin: 0 0 0.25rem; }
+  .page-toc ul { margin: 0; padding-left: 1.25rem; }
+  .page-toc li { margin: 0.125rem 0; }
+  .page-nav { display: flex; justify-content: space-between; gap: 1rem; margin: 0 0 1rem; }
+  .page-nav a { display: block; max-width: 48%; }
+  .page-nav .page-nav-next { margin-left: auto; text-align: right; }
+  .page-nav span { display: block; font-size: 0.75rem; color: #5c5962; }
+</style>
+{%- comment -%}
+  Mermaid renders ```mermaid code blocks on the GitHub Pages site; GitHub.com renders them natively.
+  Single-file build, pinned and integrity-checked (same file as the npm package mermaid@11.17.2).
+  If it fails to load or a diagram fails to render, the diagram source stays visible.
+  JavaScript lives in assets/js/ because Just the Docs compresses the HTML it outputs,
+  which joins lines and would break inline scripts with line comments.
+{%- endcomment -%}
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.min.js"
+        integrity="sha384-EOXBFmc3gx5mb+vn0vPvvGqACToJD24hhacX5Yx+8NUUQrHIle/Qi5Bg9o3zKwW2"
+        crossorigin="anonymous"></script>
+<script defer src="{{ '/assets/js/mermaid-render.js' | relative_url }}"></script>
+{%- if page.page_toc != false %}
+<script defer src="{{ '/assets/js/page-toc.js' | relative_url }}"></script>
+{%- endif %}
