@@ -4,7 +4,7 @@ Valve hasn't published developer documentation for the Steam Frame's operating s
 
 They're for Linux-literate Steam Frame owners and developers who want to explore the headset or build tools for it. You'll need developer mode on, SSH access, and to be comfortable in a shell.
 
-Every statement is based on something observed read-only on a retail headset: files, command output, strings in binaries, sysfs and the journal. Each claim names its source, and some content comes from strings in binaries only, not from watching the feature run. Where something couldn't be confirmed, the docs say so instead of guessing. Names and behavior can change with any OS update.
+Every statement is based on something observed read-only on a retail headset: files, command output, strings in binaries, sysfs and the journal. Each claim names its source, and some content comes from strings in binaries only, not from watching the feature run. The source-availability sections also use public sources (upstream Git trees, Valve's package listings and its GitLab API), each named where used. Where something couldn't be confirmed, the docs say so instead of guessing. Names and behavior can change with any OS update.
 
 ## I want to…
 
@@ -25,6 +25,7 @@ Every statement is based on something observed read-only on a retail headset: fi
 - **Read battery, fan and power state:** [Battery and charging](docs/hardware.md#battery-and-charging), [Thermals and the fan](docs/hardware.md#thermals-and-the-fan), [Power rails](docs/hardware.md#power-rails)
 - **Understand sleep, the power button and thermals:** [Sleep states](docs/power.md#sleep-states), [Power button](docs/power.md#power-button) and [Thermal zones](docs/power.md#thermal-zones)
 - **Understand the boot and update process:** [Boot](docs/boot.md), especially [Updates: RAUC, atomupd and the slot switch](docs/boot.md#updates-rauc-atomupd-and-the-slot-switch)
+- **Check where the kernel and bootloader source is published:** [Kernel: Source availability](docs/kernel.md#source-availability) and [Boot: Source availability](docs/boot.md#source-availability)
 - **Look up a term or codename:** [Glossary](docs/glossary.md)
 
 ## Contents
@@ -43,8 +44,8 @@ Every statement is based on something observed read-only on a retail headset: fi
 12. [Running other software](docs/compatibility.md): FEX for x86 programs, Proton, the Steam Linux Runtime, Lepton for Android games, podman, Flatpak and `ntsync`.
 13. [Developer workflow](docs/developer-workflow.md): installed tools, where changes persist, packages and containers, running your own Steam client, starting programs from SSH, and debugging and profiling.
 14. [Services catalog](docs/services.md): every systemd unit from Valve, SteamOS and Frame-specific packages, what it runs, and how a boot gets to VR.
-15. [Kernel](docs/kernel.md): Valve's kernel tree, the drivers it adds, the device-tree hardware map, and build options.
-16. [Boot](docs/boot.md): boot firmware, U-Boot, A/B slot state, RAUC updates, the initramfs and the bootloader's device-tree flags.
+15. [Kernel](docs/kernel.md): Valve's kernel tree, the drivers it adds, the device-tree hardware map, build options, and source availability.
+16. [Boot](docs/boot.md): boot firmware, U-Boot, A/B slot state, RAUC updates, the initramfs, the bootloader's device-tree flags, and source availability.
 17. [Firmware](docs/firmware.md): every firmware image on the device, what loads it, and how it's updated.
 18. [Local sockets and IPC](docs/local-ipc.md): the soft-AP manager, pidbridge, and the Steam client pipe.
 19. [Permissions](docs/permissions.md): what the `steamos` user can do without a password, and what developer mode turns on.
@@ -82,8 +83,9 @@ steamvr path
 
 | Item | Value |
 |---|---|
-| OS | SteamOS 0.5.9, VR variant, build 20261113.6134720 |
+| OS | SteamOS 0.5.9 (beta channel, per the owner), VR variant, build 20261113.6134720 |
 | Kernel | 7.2.0 (`linux-72-deckard 7.2.0+g344f27110f05`) |
+| Source check (later) | 2026-11-21, SteamOS 0.4.5 (stable), build 20261022.6150929, kernel 6.18.0 ([Methodology](docs/methodology.md#source-availability-check)) |
 | SteamVR | `deckard-steamvr-rel r26655409+24cb4748` |
 | Steam client | `deckard-steam-rel r1794536281+f85bf676` |
 | SteamOS Manager | 26.4.1 |

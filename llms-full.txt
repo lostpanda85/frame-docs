@@ -14,7 +14,7 @@ Valve hasn't published developer documentation for the Steam Frame's operating s
 
 They're for Linux-literate Steam Frame owners and developers who want to explore the headset or build tools for it. You'll need developer mode on, SSH access, and to be comfortable in a shell.
 
-Every statement is based on something observed read-only on a retail headset: files, command output, strings in binaries, sysfs and the journal. Each claim names its source, and some content comes from strings in binaries only, not from watching the feature run. Where something couldn't be confirmed, the docs say so instead of guessing. Names and behavior can change with any OS update.
+Every statement is based on something observed read-only on a retail headset: files, command output, strings in binaries, sysfs and the journal. Each claim names its source, and some content comes from strings in binaries only, not from watching the feature run. The source-availability sections also use public sources (upstream Git trees, Valve's package listings and its GitLab API), each named where used. Where something couldn't be confirmed, the docs say so instead of guessing. Names and behavior can change with any OS update.
 
 ## I want to…
 
@@ -35,6 +35,7 @@ Every statement is based on something observed read-only on a retail headset: fi
 - **Read battery, fan and power state:** [Battery and charging](docs/hardware.md#battery-and-charging), [Thermals and the fan](docs/hardware.md#thermals-and-the-fan), [Power rails](docs/hardware.md#power-rails)
 - **Understand sleep, the power button and thermals:** [Sleep states](docs/power.md#sleep-states), [Power button](docs/power.md#power-button) and [Thermal zones](docs/power.md#thermal-zones)
 - **Understand the boot and update process:** [Boot](docs/boot.md), especially [Updates: RAUC, atomupd and the slot switch](docs/boot.md#updates-rauc-atomupd-and-the-slot-switch)
+- **Check where the kernel and bootloader source is published:** [Kernel: Source availability](docs/kernel.md#source-availability) and [Boot: Source availability](docs/boot.md#source-availability)
 - **Look up a term or codename:** [Glossary](docs/glossary.md)
 
 ## Contents
@@ -53,8 +54,8 @@ Every statement is based on something observed read-only on a retail headset: fi
 12. [Running other software](docs/compatibility.md): FEX for x86 programs, Proton, the Steam Linux Runtime, Lepton for Android games, podman, Flatpak and `ntsync`.
 13. [Developer workflow](docs/developer-workflow.md): installed tools, where changes persist, packages and containers, running your own Steam client, starting programs from SSH, and debugging and profiling.
 14. [Services catalog](docs/services.md): every systemd unit from Valve, SteamOS and Frame-specific packages, what it runs, and how a boot gets to VR.
-15. [Kernel](docs/kernel.md): Valve's kernel tree, the drivers it adds, the device-tree hardware map, and build options.
-16. [Boot](docs/boot.md): boot firmware, U-Boot, A/B slot state, RAUC updates, the initramfs and the bootloader's device-tree flags.
+15. [Kernel](docs/kernel.md): Valve's kernel tree, the drivers it adds, the device-tree hardware map, build options, and source availability.
+16. [Boot](docs/boot.md): boot firmware, U-Boot, A/B slot state, RAUC updates, the initramfs, the bootloader's device-tree flags, and source availability.
 17. [Firmware](docs/firmware.md): every firmware image on the device, what loads it, and how it's updated.
 18. [Local sockets and IPC](docs/local-ipc.md): the soft-AP manager, pidbridge, and the Steam client pipe.
 19. [Permissions](docs/permissions.md): what the `steamos` user can do without a password, and what developer mode turns on.
@@ -92,8 +93,9 @@ steamvr path
 
 | Item | Value |
 |---|---|
-| OS | SteamOS 0.5.9, VR variant, build 20261113.6134720 |
+| OS | SteamOS 0.5.9 (beta channel, per the owner), VR variant, build 20261113.6134720 |
 | Kernel | 7.2.0 (`linux-72-deckard 7.2.0+g344f27110f05`) |
+| Source check (later) | 2026-11-21, SteamOS 0.4.5 (stable), build 20261022.6150929, kernel 6.18.0 ([Methodology](docs/methodology.md#source-availability-check)) |
 | SteamVR | `deckard-steamvr-rel r26655409+24cb4748` |
 | Steam client | `deckard-steam-rel r1794536281+f85bf676` |
 | SteamOS Manager | 26.4.1 |
@@ -4063,9 +4065,9 @@ The image also has a handful of unowned unit files in `/etc/systemd/system` (`db
 
 # The kernel
 
-The Frame runs Linux 7.2 from Valve's own tree, packaged as `linux-72-deckard`. The package metadata points to `gitlab.steamos.cloud/deckard/deckardos/linux-valve`. Whether that repository is publicly reachable wasn't checked. This page covers what's visible from the running system: the build config, the drivers Valve added, how the hardware is described in the device tree, and the sysfs knobs those drivers expose.
+The Frame runs Linux 7.2 from Valve's own tree, packaged as `linux-72-deckard`. The package metadata points to `gitlab.steamos.cloud/deckard/deckardos/linux-valve`, which isn't publicly reachable, but Valve publishes source packages for many builds of this kernel elsewhere ([Source availability](#source-availability)). This page covers what's visible from the running system (plus public source listings, in [Source availability](#source-availability)): the build config, the drivers Valve added, how the hardware is described in the device tree, and the sysfs knobs those drivers expose.
 
-Everything here is **Internal**. Driver names, sysfs attributes and device-tree layout can change with any kernel update.
+Everything here is **Internal** except [In mainline Linux](#in-mainline-linux), which describes upstream code. Driver names, sysfs attributes and device-tree layout can change with any kernel update.
 
 ## Where to look
 
@@ -4198,6 +4200,47 @@ The command line comes from a format string in U-Boot proper. The full line, whe
 
 `hid_steam` is built in (modinfo description "HID driver for Valve Steam Controller"). Its modinfo aliases cover USB product IDs `28de:1102`, `28de:1142` and `28de:1205`. No `/dev/hidraw*` nodes exist, and the Frame controllers are handled by SteamVR over SPI instead ([controllers](controllers.md)).
 
+## Source availability
+
+Checked on 2026-11-21, with the headset on SteamOS 0.4.5 (stable), not the 0.5.9 beta the rest of this page describes. Installed-package details are from 0.4.5 ([Methodology](methodology.md#source-availability-check)).
+
+- **The 0.5.9 beta kernel has a source package.** `linux-72-deckard 7.2.0+g344f27110f05`, the build this page describes, is in Valve's [source directory](https://holo-packages.steamos.cloud/archlinux-deckard-hotfixes/source/).
+- **The 0.4.5 stable kernel isn't listed under its own version.** No source package is named for `linux-618-deckard 6.18.0+ge66bc2ca6f8c`. The two kernel packages sampled carry a git mirror of Valve's kernel repository. Whether any listed package's mirror contains that commit wasn't determined. A third-party mirror, not Valve's, does ([below](#third-party-mirrors)).
+- **Mainline Linux has a device tree for the Frame** since v7.4-rc1, but none of the Valve-written drivers above ([In mainline Linux](#in-mainline-linux)).
+
+- **Valve's source directory.** [`holo-packages.steamos.cloud/archlinux-deckard-hotfixes/source/`](https://holo-packages.steamos.cloud/archlinux-deckard-hotfixes/source/) is an anonymously readable directory of Arch source packages (`.src.tar.gz`). Valve's public [`deckard-pacman-src`](https://gitlab.steamos.cloud/frame-public/frame-developer-tools/-/blob/main/pacman/deckard-pacman-src) script (in frame-developer-tools) names the `archlinux-deckard-hotfixes` repository on this server, and `source/` is a subdirectory of it.
+  - The directory lists 24 `linux-72-deckard` and 12 `linux-618-deckard` source packages. Other packages built from the same commits (`-hwdebug`, `v4l2loopback`, `linux-api-headers`, `linux-tools`) aren't counted.
+  - `linux-72-deckard-7.2.0+g344f27110f05-1` is 2.5 GiB. Only its first 4 MB was read. That part contains a `.SRCINFO`, a PKGBUILD (`license=(GPL-2.0-only)`) and a bare git mirror (`+refs/*:refs/*`) of `deckard/deckardos/linux-valve-publicly-released-branches`.
+  - The first 256 KB of a second package, `linux-618-deckard-6.18.0+g733a4be78129-4`, shows the same kind of mirror.
+- **Installed package metadata.** `pacman -Qi linux-618-deckard` gives the URL `https://gitlab.steamos.cloud/deckard/deckardos/linux-valve/-/tree/e66bc2ca6f8ca6baa5260c69c9b79dc01a6238b9` and the license field `GPL-2.0-only`, `no-source-release`. Its file list (`pacman -Ql`) has no license or `COPYING` file.
+- **Valve's GitLab.** Anonymous API requests for `deckard/deckardos/linux-valve`, `deckard/deckardos/linux-valve-publicly-released-branches` and every PKGBUILD repository that `deckard-pacman-src` can print return `404 Project Not Found`. GitLab returns that for private and missing projects alike.
+  - None of the 46 public projects is a kernel tree, judged by name and description.
+  - The Frame-related public projects are the Frame's [CAD and electrical references](https://gitlab.steamos.cloud/SteamHardware/SteamFrame) and the [`frame-public`](https://gitlab.steamos.cloud/frame-public) group (Lepton, Waydroid forks, Android Vulkan headers, frame-developer-tools).
+  - Separately, [`holo/holo-core-aarch64-preview`](https://gitlab.steamos.cloud/holo/holo-core-aarch64-preview) is an Arch Linux aarch64 port. Its only kernel is Arch's `linux` 6.17.8.arch1 package, built from the kernel.org tarball plus Arch's patch.
+- **Steam Deck source mirror.** [`steamdeck-packages.steamos.cloud/archlinux-mirror/sources/`](https://steamdeck-packages.steamos.cloud/archlinux-mirror/sources/) has 30 directories, all `holo-*` or `jupiter-*`. The `jupiter-*` directories hold the Steam Deck's kernels (`linux-neptune-*`). No listing mentions `deckard`.
+- <a id="third-party-mirrors"></a>**Third-party mirrors.** On GitHub, evlaV publishes [evlaV/deckard](https://github.com/evlaV/deckard), which its README says is generated from Valve's source directory, and [evlaV/deckard-linux](https://github.com/evlaV/deckard-linux). These aren't Valve's and weren't reviewed. The only check made was that `deckard-linux` contains commit `e66bc2ca6f8c`, the 0.4.5 kernel. A U-Boot mirror is on [Boot → Source availability](boot.md#source-availability).
+
+### In mainline Linux
+
+**Tag: Public (upstream).** As of `torvalds/linux` master `c44104f3642d` (2026-11-21):
+
+- **The board is described.** Two commits from Linaro, authored 2026-09-23, first appear in v7.4-rc1:
+  - [`abbbaa99ac66`](https://git.kernel.org/torvalds/c/abbbaa99ac66) adds the compatible `valve,deckard` to `Documentation/devicetree/bindings/arm/qcom.yaml`.
+  - [`f905cb6e600a`](https://git.kernel.org/torvalds/c/f905cb6e600a) adds `arch/arm64/boot/dts/qcom/sm8650-valve-deckard.dts` (model `Valve Deckard`, copyright Valve). Its commit message lists "initial support" for reserved memory, regulators, GPIO keys, PMIC functions and ADC channels, UFS, USB gadget, WCN7850 Wi-Fi and Bluetooth, I²C and the SD card slot. Its Link tag points to [patch 2 of the v2 series](https://lore.kernel.org/r/20260923-topic-sm8650-deckard-initial-dt-v2-2-8361c4548efa@linaro.org).
+- **The headset doesn't boot that device tree.** Its top-level compatible is `qcom,sm8650-dv1`, `qcom,sm8650`, not `valve,deckard`.
+- **The Valve-written drivers aren't there.** Of the source paths in the [Valve-written drivers](#valve-written-drivers) table, only `nex10000ub-regulator` has a mainline file of the same name, and that file is a different driver (see the table below).
+- **Commit search.** GitHub commit search of mainline for `deckard` and `Steam Frame` finds only the two commits above, the merges that carry them, and a 2025 `drm/msm/dpu` commit whose patch link (a Linaro message ID) contains `hmd-deckard`.
+- **Mailing lists.** Whether Valve has posted any of its own drivers to a kernel mailing list wasn't determined. The archives couldn't be searched ([Methodology](methodology.md#source-availability-check)).
+
+Of the chips in [Valve-written drivers](#valve-written-drivers) and [Other Frame-specific drivers](#other-frame-specific-drivers-in-the-tree), four have a mainline driver, but not the one the headset runs. The path, compatible or supported chips differ:
+
+| Chip | On the Frame (0.4.5, kernel 6.18.0) | In mainline |
+|---|---|---|
+| Nexperia NEX10000UB | `drivers/regulator/nex10000ub-regulator`, `author=Valve`, compatibles `nexperia,nex10000ub`, `nexperia,nex10000aub` | `drivers/regulator/nex10000ub-regulator.c` ("NEX10000UB regulator driver"), compatible `nexperia,nex10000ub`, from Linaro, first in v7.4-rc1 |
+| Allegro ALS31300 | `drivers/input/misc/als31300` (input device), compatible `allegro,als31300` | `drivers/iio/magnetometer/als31300.c` (IIO), compatibles `allegromicro,als31300-*`, from Linaro (2024). Same module description. The mainline Deckard device tree uses it (`allegromicro,als31300-500`). |
+| Maxim fuel gauge (the Frame's is a [MAX17320](#other-frame-specific-drivers-in-the-tree)) | `max1720x_battery`, crediting Maxim: "MAX17201/5, MAX17300/1/2/3, MAX17320 and MAX17330/2/5" | `drivers/power/supply/max1720x_battery.c`: same module name, "MAX17201/MAX17205" only (compatible `maxim,max17201`) |
+| OmniVision OG01A1B | `drivers/media/i2c/og01a1b-a` ("og01a1b MIPI Camera Subdev Driver"), compatible `ovti,og01a1bx` | `drivers/media/i2c/og01a1b.c` ("OmniVision OG01A1B sensor driver"), compatible `ovti,og01a1b` |
+
 ## Interpretation
 
 *This section is interpretation, not observation. It combines the facts above with general knowledge and may be wrong.*
@@ -4228,9 +4271,10 @@ The bootloader binaries were never executed or modified. Facts about them come f
 - **The chain is U-Boot, not UEFI.** U-Boot SPL (in `uefi_a/b`) loads U-Boot proper (in `uboot_a/b`), which boots the kernel and a mkinitcpio initramfs from the booted rootfs's `/boot`. `/sys/firmware/efi` doesn't exist. ([Boot components](#boot-components))
 - **There are two kinds of A/B slot.** The OS slot (`rootfs`, `efi` and `var`, grouped as [partsets](#partsets)) is passed to the kernel as `rauc.slot=`. `kernelsetup.sh` and `splctl` track the boot-firmware slot separately. ([Boot firmware package](#boot-firmware-package))
 - **`splctl` manages slot state.** `/usr/bin/steamos-bootconf` is a wrapper that maps onto it. The slot variable names (`BOOT_ORDER`, `BOOT_STATE_A/B`, …) appear in bootloader and `splctl` strings, but the U-Boot environment that `fw_printenv` reads holds only `bootdelay`, `default_bootargs` and `verify`. Both tools have write subcommands, so don't run either to explore. ([U-Boot environment and slot state](#u-boot-environment-and-slot-state))
-- **Updates go from atomupd to RAUC to a post-install script.** RAUC uses a custom bootloader backend, and `post-install.sh` makes the new slot primary with `splctl set-primary`. No update was observed. ([Updates](#updates-rauc-atomupd-and-the-slot-switch))
+- **Updates go from atomupd to RAUC to a post-install script.** RAUC uses a custom bootloader backend, and `post-install.sh` makes the new slot primary with `splctl set-primary`. No update was watched while it ran. ([Updates](#updates-rauc-atomupd-and-the-slot-switch))
 - **Bootloader settings reach Linux as files.** ADB mode, factory mode and the boot menu's "Repair Steam Installation" show up as properties under `/proc/device-tree/chosen/`, and services test whether those files exist. ([Device-tree flags](#device-tree-flags-from-the-bootloader))
 - **Much of the flash is read-only after boot.** LUNs 1–3 (boot firmware, U-Boot and `/persist`) are read-only at the block layer. `/` is mounted `rw` but carries the btrfs `ro` property. dm-verity is built into the kernel but not in use. ([Read-only LUNs](#read-only-luns), [Root filesystem](#root-filesystem-read-only-flag-and-dm-verity))
+- **Valve publishes U-Boot and `splctl` source as source packages.** Packages aren't listed for every build, but the U-Boot commit from SteamOS 0.4.5 (stable, checked later) is in a newer package's git mirror. The GitLab repositories named in the package metadata aren't publicly reachable. Upstream U-Boot supports the SoC but has no Frame board. ([Source availability](#source-availability))
 
 **Contents**
 
@@ -4248,9 +4292,10 @@ The bootloader binaries were never executed or modified. Facts about them come f
 12. [Initramfs](#initramfs)
 13. [Root filesystem, read-only flag and dm-verity](#root-filesystem-read-only-flag-and-dm-verity)
 14. [Userspace timing](#userspace-timing)
-15. [Interpretation](#interpretation) (verification and secure-boot state)
-16. [How to inspect this yourself](#how-to-inspect-this-yourself)
-17. [Not determined](#not-determined)
+15. [Source availability](#source-availability)
+16. [Interpretation](#interpretation) (verification and secure-boot state)
+17. [How to inspect this yourself](#how-to-inspect-this-yourself)
+18. [Not determined](#not-determined)
 
 ## Boot components
 
@@ -4619,7 +4664,7 @@ In short: `steamos-boot.service`, RAUC's `post-install.sh` and RAUC's `bootloade
 
 **Tag: Public (upstream).** for RAUC's D-Bus API ([dbus → RAUC](dbus.md#rauc-depengutronixrauc)). **Tag: Internal.** for the configuration and hook scripts.
 
-No update was installed while writing this. This section is what the configuration and scripts contain.
+No update was watched while it ran. This section is what the configuration and scripts contain.
 
 `steamos-atomupd-client` (driven by [atomupd](dbus.md#os-updates-comsteampoweredatomupd1)) runs `rauc install <url>` (`client.py`). `/etc/rauc/system.conf` sets:
 
@@ -4647,7 +4692,7 @@ What the handler scripts do:
 
 When that trigger file exists, `holo-post-update-shutdown.service` runs at shutdown. It runs `holo-sync-var catchup` into the new slot's `var`, then `steamos-finalize-install --no-boot-install` (or `holo-finalize-install`) inside the new slot.
 
-The same flow as a diagram. It follows the scripts; no update was observed. Step numbers are `post-install.sh`'s.
+The same flow as a diagram. It follows the scripts; no update was watched while it ran. Step numbers are `post-install.sh`'s.
 
 ```mermaid
 flowchart TD
@@ -4790,6 +4835,45 @@ When the `factory_reset` hook finds a `.cfg` file on the `esp` partition, it:
 - `systemd-analyze critical-chain` and `systemd-analyze blame` show the chain and the slowest units. Results vary with developer mode, and the chain with developer mode off wasn't captured.
 - `steamos-boot.service` runs after `graphical.target` ([Marking a boot good](#marking-a-boot-good)). The VR session is covered in [Services → How a boot reaches VR](services.md#how-a-boot-reaches-vr).
 
+## Source availability
+
+**Tag: Internal.**
+
+Checked on 2026-11-21, with the headset on SteamOS 0.4.5 (stable), not the 0.5.9 beta the rest of this page describes. Installed-package details are from 0.4.5 ([Methodology](methodology.md#source-availability-check)).
+
+- **`splctl`'s source is published.** Valve's [source directory](https://holo-packages.steamos.cloud/archlinux-deckard-hotfixes/source/) has a source package with the same tag as the installed `splctl`.
+- **The 0.4.5 U-Boot commit is in a newer package's git mirror.** No `deckard-uboot` package matches the installed version, but the git mirror in a newer one lists the 0.4.5 build's commit. Whether it holds that commit's full tree wasn't checked.
+- **No `deckard-boot-firmware` package is listed.** On 0.5.9 that's the package that installs U-Boot.
+- **Upstream U-Boot supports the SoC** but has no Frame board ([In upstream U-Boot](#in-upstream-u-boot)).
+
+[Kernel → Source availability](kernel.md#source-availability) covers the kernel and describes the source directory and the other places checked.
+
+On 0.4.5, `deckard-boot-firmware` isn't installed. `/boot/bootfw.tar.xz`, `/boot/uboot.env` and `/boot/uboot_ev3.img` belong to `deckard-uboot`, which has the same package description: "Deckard second-stage bootloader and firmware".
+
+| Installed package (0.4.5) | License field | License files | Source package listed |
+|---|---|---|---|
+| `deckard-uboot` 20260908.1-2 | `GPL-2.0+`, `BSD`, `OFL-1.1` | `OFL.txt` only | Not this version. There are eight newer packages, 20261012.2-2 to 20261119.1-1. |
+| `deckard-uboot-splctl` 20260128.3-2 | `GPL-2.0+`, `no-source-release` | None | `20260128.3-6`: same tag, newer package release |
+
+- **What the source packages contain.** Nothing in them was built or run.
+  - `deckard-uboot-splctl-20260128.3-6` (110 KB, read whole) has a PKGBUILD (`license=('GPL-2.0+')`) and a bare git repository with the tag `20260128.3`.
+  - Of `deckard-uboot-20261119.1-1` (340 MiB), only the first 34 MB was read. It has a PKGBUILD (`license=('GPL-2.0+' 'BSD' 'OFL-1.1')`) and a bare git mirror (`+refs/*:refs/*`) of `deckard/deckardos/u-boot`. That mirror's pack index lists commit `bb0a2a01cb6d`, the hash in the 0.4.5 version string, and its root tree object. Whether the mirror holds that commit's complete tree wasn't checked.
+- **`deckard-uboot` vs `deckard-boot-firmware`.** Comments in the 20261119.1-1 PKGBUILD say the package installs intermediate files under `/usr/lib/u-boot/`, which must be further wrapped and deployed, and that a typical user device installs `deckard-boot-firmware` instead. How the two packages relate on 0.4.5, where `deckard-uboot` owns `/boot/bootfw.tar.xz`, wasn't determined.
+- **Installed package URLs (0.4.5).**
+  - `deckard-uboot` gives `https://gitlab.steamos.cloud/deckard/deckardos/u-boot/-/tree/$_srctag`, with a literal, unexpanded `$_srctag`.
+  - `deckard-uboot-splctl` gives `https://gitlab.steamos.cloud/deckard/deckardos/deckard-uboot-splctl/-/tree/20260128.3`.
+  - Anonymous GitLab API requests for both projects return `404 Project Not Found`, which GitLab returns for private and missing projects alike.
+- **Version string.** On 0.4.5, `/boot/ubootrelease.txt` and `/proc/device-tree/chosen/u-boot,version` both read `2025.07-rc3-00634-gbb0a2a01cb6d`. The 0.5.9 build's full string wasn't recorded.
+- **Third-party mirror.** [evlaV/deckard-u-boot](https://github.com/evlaV/deckard-u-boot) on GitHub isn't Valve's and wasn't reviewed. The only check made was that it contains commit `bb0a2a01cb6d`.
+
+### In upstream U-Boot
+
+**Tag: Public (upstream).** On U-Boot's GitHub mirror, [`u-boot/u-boot`](https://github.com/u-boot/u-boot/tree/c1958b5f6cce), branch `main` at `c1958b5f6cce` (2026-11-19) has generic SM8650 support: `configs/qcom_sm8650_defconfig` and SM8650 clock, pin-control and interconnect drivers. It has no Frame board:
+
+- No path in the tree contains `deckard`. The only Valve board in its device-tree copy is the Steam Link.
+- There's no `cmd/splctl.c`.
+- U-Boot's copy of the Linux device trees (`dts/upstream/src/arm64/qcom/`) doesn't include `sm8650-valve-deckard.dts`. Linux added that file in v7.4-rc1 ([Kernel → In mainline Linux](kernel.md#in-mainline-linux)).
+
 ## Interpretation
 
 *This section is interpretation, not observation. It combines the facts above with general knowledge and may be wrong.*
@@ -4887,7 +4971,9 @@ These weren't settled by reading files and logs, including in the later read-onl
 - The role of `bootenv`, `bootenvb`, `uefivarstore`, `cdt`, `ddr`, `xblramdump`, `toolsfv` and `adpd`
 - Whether any signature check covers the SPL, U-Boot proper or the kernel
 - What reads `u-boot,charger`, `u-boot,display`, `u-boot,pon-trigger-smpl` and `u-boot,oldrootfssupport`, and what creates `u-boot,disable-adb` and `u-boot,disable-ncm`
-- What happens during an actual update. None was installed.
+- What happens during an actual update. None was watched while it ran. Later installs show up in the RAUC journal, but only its success lines were read ([Methodology](methodology.md#source-availability-check)).
+- Which `deckard-boot-firmware`, `deckard-uboot` and `deckard-uboot-splctl` versions the 0.5.9 build had, including its full U-Boot version string, and whether any listed source package matches them
+- Whether the U-Boot mirror in the `deckard-uboot` source package holds the 0.4.5 commit's complete tree
 
 ---
 
@@ -5238,7 +5324,7 @@ The script captures openocd's output in a variable and doesn't log it. The journ
 | `/boot/ubootrelease.txt` | The U-Boot version string |
 | `/boot/kernelsetup.sh` | The script that writes the images above to flash |
 
-`kernelsetup.sh` only acts if `/dev/disk/by-partlabel/rootfs-A` exists and `vrdevice_path model` is `EV3`, `DV1`, `DV2` or `MP`. It writes `uboot.img`, `ubootfw.img` and `uboot.env` to the `uboot_`, `ubootfw_` and `ubootenv_` partitions of the OS slot that isn't booted, and only when a partition's contents differ from the file. For `bootfw.tar.xz`, it compares every image with the active firmware slot. If any differ, it writes the mismatched images to the other firmware slot, reads them back, and runs `splctl set-bootfw-slot`. It doesn't write `ubootrelease.txt`. Details are in [boot](boot.md#bootloader-and-firmware-updates). This comes from reading the script: no update was installed during the survey, so it wasn't observed running ([boot](boot.md)).
+`kernelsetup.sh` only acts if `/dev/disk/by-partlabel/rootfs-A` exists and `vrdevice_path model` is `EV3`, `DV1`, `DV2` or `MP`. It writes `uboot.img`, `ubootfw.img` and `uboot.env` to the `uboot_`, `ubootfw_` and `ubootenv_` partitions of the OS slot that isn't booted, and only when a partition's contents differ from the file. For `bootfw.tar.xz`, it compares every image with the active firmware slot. If any differ, it writes the mismatched images to the other firmware slot, reads them back, and runs `splctl set-bootfw-slot`. It doesn't write `ubootrelease.txt`. Details are in [boot](boot.md#bootloader-and-firmware-updates). This comes from reading the script: no update was watched while it ran, so it wasn't observed running ([boot](boot.md)).
 
 Several images contain a `QC_IMAGE_VERSION_STRING=…` you can read with `strings`. On the build surveyed, `xbl.fw` has `BOOT.MXF.2.1-01945-LANAI-1`, `tz.fw` and `hyp.fw` have `TZ.XF.5.0-00000`, and `aop.fw` has `AOP.HO.5.0-00773-LANAI_E-1`. `uefi.fw` contains the strings `uboot-spl` and `spl_load_image_fat`; [boot](boot.md) covers it as U-Boot SPL.
 
@@ -5700,6 +5786,21 @@ Everything came from an SSH session as `steamos` on a retail Frame in developer 
 - **SteamVR web API**: grepping the shipped web UI JavaScript in `/opt/steamvr/resources/webinterface/` and the `vrserver` binary's strings.
 
 Nothing was deliberately written or changed. Commands that talked to a service or ran a Valve tool: `GET` requests (devkit service, DevTools ports, SteamVR web server), D-Bus property reads and `busctl introspect`, the notification server's `GetServerInformation`/`GetCapabilities`, `softapcmd status`/`state`/`get-channels`/`get-plan` and one raw `get-channels` over the socket with `socat`, a connection to `pidbridge`, `fanspeed -p`, `vrcmd --help`, `vrcmd --dumpsensors`, `vrcmd --mailboxcmd zz_nonexistent_doc_probe noop` (rejected), `pkcheck`/`pkaction` authorization queries, `fw_printenv` (failed without root), `eeprom_console help` and `get`, `vrdevice_path` for every key, and `avahi-browse -rtp _steamos-devkit._tcp` (found nothing).
+
+## Source availability check
+
+The [Kernel](kernel.md#source-availability) and [Boot](boot.md#source-availability) source-availability sections were checked on 2026-11-21. By then the owner had moved the headset from the beta channel back to stable, outside these read-only checks. The headset was reached over SSH on the USB-C link.
+
+The RAUC journal (`journalctl -u rauc`) shows the 0.5.x bundles, including 0.5.9, installed between 2026-10-28 and 2026-11-19. Stable 0.4.5 (`deckard-stable-20261022.6150929-0.4.5.raucb`) was installed on 2026-11-20, and the headset then booted kernel 6.18.0. The 0.5.x bundle names carry no channel name: the beta channel is the owner's account of the setting. `/etc/steamos-atomupd/preferences.conf` now reads `Branch=stable`.
+
+- **On the headset (read-only):** `pacman -Qi` and `pacman -Ql` for the kernel, U-Boot and `splctl` packages; `pacman -Qo` on files in `/boot`; `pacman -Q deckard-boot-firmware`; `/proc/device-tree/chosen/u-boot,version`; `modinfo` and `modules.builtin.modinfo` for driver metadata; `/proc/device-tree/compatible`; `/boot/ubootrelease.txt`; `journalctl -b <n> -k`, `journalctl -u rauc` and `/etc/steamos-atomupd/preferences.conf` to confirm the channel change.
+- **From the Mac:**
+  - Anonymous requests to the `gitlab.steamos.cloud` REST API (project lookups and the public project list).
+  - Directory listings of Valve's Deckard source directory and the Steam Deck source mirror.
+  - Partial downloads from the Deckard source directory, with their archive contents listed and nothing built or run: the whole `deckard-uboot-splctl` source package (110 KB), the first 4 MB of one `linux-72-deckard` package, the first 256 KB of one `linux-618-deckard` package, and the first 34 MB of `deckard-uboot-20261119.1-1`. For the last one, the git pack index was searched for one commit hash.
+  - The GitHub API for `torvalds/linux`, `u-boot/u-boot` and the evlaV mirrors (directory listings, file contents, commits and commit search).
+  - Seven public `gitlab.steamos.cloud` repositories (SteamFrame, the five `frame-public` projects and `holo-core-aarch64-preview`), cloned by the owner and read without running anything in them. The other public projects were judged from the project list only.
+- **Not searched:** GitLab's web pages and the kernel mailing-list archives (lore.kernel.org, patchwork.kernel.org). All of them answered automated requests with a bot check.
 
 ## Incident: running unknown binaries with `--help`
 

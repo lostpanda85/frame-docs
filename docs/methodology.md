@@ -17,6 +17,21 @@ Everything came from an SSH session as `steamos` on a retail Frame in developer 
 
 Nothing was deliberately written or changed. Commands that talked to a service or ran a Valve tool: `GET` requests (devkit service, DevTools ports, SteamVR web server), D-Bus property reads and `busctl introspect`, the notification server's `GetServerInformation`/`GetCapabilities`, `softapcmd status`/`state`/`get-channels`/`get-plan` and one raw `get-channels` over the socket with `socat`, a connection to `pidbridge`, `fanspeed -p`, `vrcmd --help`, `vrcmd --dumpsensors`, `vrcmd --mailboxcmd zz_nonexistent_doc_probe noop` (rejected), `pkcheck`/`pkaction` authorization queries, `fw_printenv` (failed without root), `eeprom_console help` and `get`, `vrdevice_path` for every key, and `avahi-browse -rtp _steamos-devkit._tcp` (found nothing).
 
+## Source availability check
+
+The [Kernel](kernel.md#source-availability) and [Boot](boot.md#source-availability) source-availability sections were checked on 2026-11-21. By then the owner had moved the headset from the beta channel back to stable, outside these read-only checks. The headset was reached over SSH on the USB-C link.
+
+The RAUC journal (`journalctl -u rauc`) shows the 0.5.x bundles, including 0.5.9, installed between 2026-10-28 and 2026-11-19. Stable 0.4.5 (`deckard-stable-20261022.6150929-0.4.5.raucb`) was installed on 2026-11-20, and the headset then booted kernel 6.18.0. The 0.5.x bundle names carry no channel name: the beta channel is the owner's account of the setting. `/etc/steamos-atomupd/preferences.conf` now reads `Branch=stable`.
+
+- **On the headset (read-only):** `pacman -Qi` and `pacman -Ql` for the kernel, U-Boot and `splctl` packages; `pacman -Qo` on files in `/boot`; `pacman -Q deckard-boot-firmware`; `/proc/device-tree/chosen/u-boot,version`; `modinfo` and `modules.builtin.modinfo` for driver metadata; `/proc/device-tree/compatible`; `/boot/ubootrelease.txt`; `journalctl -b <n> -k`, `journalctl -u rauc` and `/etc/steamos-atomupd/preferences.conf` to confirm the channel change.
+- **From the Mac:**
+  - Anonymous requests to the `gitlab.steamos.cloud` REST API (project lookups and the public project list).
+  - Directory listings of Valve's Deckard source directory and the Steam Deck source mirror.
+  - Partial downloads from the Deckard source directory, with their archive contents listed and nothing built or run: the whole `deckard-uboot-splctl` source package (110 KB), the first 4 MB of one `linux-72-deckard` package, the first 256 KB of one `linux-618-deckard` package, and the first 34 MB of `deckard-uboot-20261119.1-1`. For the last one, the git pack index was searched for one commit hash.
+  - The GitHub API for `torvalds/linux`, `u-boot/u-boot` and the evlaV mirrors (directory listings, file contents, commits and commit search).
+  - Seven public `gitlab.steamos.cloud` repositories (SteamFrame, the five `frame-public` projects and `holo-core-aarch64-preview`), cloned by the owner and read without running anything in them. The other public projects were judged from the project list only.
+- **Not searched:** GitLab's web pages and the kernel mailing-list archives (lore.kernel.org, patchwork.kernel.org). All of them answered automated requests with a bot check.
+
 ## Incident: running unknown binaries with `--help`
 
 Three tools didn't treat `--help` as a help flag:

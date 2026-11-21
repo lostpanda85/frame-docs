@@ -11,9 +11,10 @@ The bootloader binaries were never executed or modified. Facts about them come f
 - **The chain is U-Boot, not UEFI.** U-Boot SPL (in `uefi_a/b`) loads U-Boot proper (in `uboot_a/b`), which boots the kernel and a mkinitcpio initramfs from the booted rootfs's `/boot`. `/sys/firmware/efi` doesn't exist. ([Boot components](#boot-components))
 - **There are two kinds of A/B slot.** The OS slot (`rootfs`, `efi` and `var`, grouped as [partsets](#partsets)) is passed to the kernel as `rauc.slot=`. `kernelsetup.sh` and `splctl` track the boot-firmware slot separately. ([Boot firmware package](#boot-firmware-package))
 - **`splctl` manages slot state.** `/usr/bin/steamos-bootconf` is a wrapper that maps onto it. The slot variable names (`BOOT_ORDER`, `BOOT_STATE_A/B`, …) appear in bootloader and `splctl` strings, but the U-Boot environment that `fw_printenv` reads holds only `bootdelay`, `default_bootargs` and `verify`. Both tools have write subcommands, so don't run either to explore. ([U-Boot environment and slot state](#u-boot-environment-and-slot-state))
-- **Updates go from atomupd to RAUC to a post-install script.** RAUC uses a custom bootloader backend, and `post-install.sh` makes the new slot primary with `splctl set-primary`. No update was observed. ([Updates](#updates-rauc-atomupd-and-the-slot-switch))
+- **Updates go from atomupd to RAUC to a post-install script.** RAUC uses a custom bootloader backend, and `post-install.sh` makes the new slot primary with `splctl set-primary`. No update was watched while it ran. ([Updates](#updates-rauc-atomupd-and-the-slot-switch))
 - **Bootloader settings reach Linux as files.** ADB mode, factory mode and the boot menu's "Repair Steam Installation" show up as properties under `/proc/device-tree/chosen/`, and services test whether those files exist. ([Device-tree flags](#device-tree-flags-from-the-bootloader))
 - **Much of the flash is read-only after boot.** LUNs 1–3 (boot firmware, U-Boot and `/persist`) are read-only at the block layer. `/` is mounted `rw` but carries the btrfs `ro` property. dm-verity is built into the kernel but not in use. ([Read-only LUNs](#read-only-luns), [Root filesystem](#root-filesystem-read-only-flag-and-dm-verity))
+- **Valve publishes U-Boot and `splctl` source as source packages.** Packages aren't listed for every build, but the U-Boot commit from SteamOS 0.4.5 (stable, checked later) is in a newer package's git mirror. The GitLab repositories named in the package metadata aren't publicly reachable. Upstream U-Boot supports the SoC but has no Frame board. ([Source availability](#source-availability))
 
 **Contents**
 
@@ -31,9 +32,10 @@ The bootloader binaries were never executed or modified. Facts about them come f
 12. [Initramfs](#initramfs)
 13. [Root filesystem, read-only flag and dm-verity](#root-filesystem-read-only-flag-and-dm-verity)
 14. [Userspace timing](#userspace-timing)
-15. [Interpretation](#interpretation) (verification and secure-boot state)
-16. [How to inspect this yourself](#how-to-inspect-this-yourself)
-17. [Not determined](#not-determined)
+15. [Source availability](#source-availability)
+16. [Interpretation](#interpretation) (verification and secure-boot state)
+17. [How to inspect this yourself](#how-to-inspect-this-yourself)
+18. [Not determined](#not-determined)
 
 ## Boot components
 
@@ -402,7 +404,7 @@ In short: `steamos-boot.service`, RAUC's `post-install.sh` and RAUC's `bootloade
 
 **Tag: Public (upstream).** for RAUC's D-Bus API ([dbus → RAUC](dbus.md#rauc-depengutronixrauc)). **Tag: Internal.** for the configuration and hook scripts.
 
-No update was installed while writing this. This section is what the configuration and scripts contain.
+No update was watched while it ran. This section is what the configuration and scripts contain.
 
 `steamos-atomupd-client` (driven by [atomupd](dbus.md#os-updates-comsteampoweredatomupd1)) runs `rauc install <url>` (`client.py`). `/etc/rauc/system.conf` sets:
 
@@ -430,7 +432,7 @@ What the handler scripts do:
 
 When that trigger file exists, `holo-post-update-shutdown.service` runs at shutdown. It runs `holo-sync-var catchup` into the new slot's `var`, then `steamos-finalize-install --no-boot-install` (or `holo-finalize-install`) inside the new slot.
 
-The same flow as a diagram. It follows the scripts; no update was observed. Step numbers are `post-install.sh`'s.
+The same flow as a diagram. It follows the scripts; no update was watched while it ran. Step numbers are `post-install.sh`'s.
 
 ```mermaid
 flowchart TD
@@ -573,6 +575,45 @@ When the `factory_reset` hook finds a `.cfg` file on the `esp` partition, it:
 - `systemd-analyze critical-chain` and `systemd-analyze blame` show the chain and the slowest units. Results vary with developer mode, and the chain with developer mode off wasn't captured.
 - `steamos-boot.service` runs after `graphical.target` ([Marking a boot good](#marking-a-boot-good)). The VR session is covered in [Services → How a boot reaches VR](services.md#how-a-boot-reaches-vr).
 
+## Source availability
+
+**Tag: Internal.**
+
+Checked on 2026-11-21, with the headset on SteamOS 0.4.5 (stable), not the 0.5.9 beta the rest of this page describes. Installed-package details are from 0.4.5 ([Methodology](methodology.md#source-availability-check)).
+
+- **`splctl`'s source is published.** Valve's [source directory](https://holo-packages.steamos.cloud/archlinux-deckard-hotfixes/source/) has a source package with the same tag as the installed `splctl`.
+- **The 0.4.5 U-Boot commit is in a newer package's git mirror.** No `deckard-uboot` package matches the installed version, but the git mirror in a newer one lists the 0.4.5 build's commit. Whether it holds that commit's full tree wasn't checked.
+- **No `deckard-boot-firmware` package is listed.** On 0.5.9 that's the package that installs U-Boot.
+- **Upstream U-Boot supports the SoC** but has no Frame board ([In upstream U-Boot](#in-upstream-u-boot)).
+
+[Kernel → Source availability](kernel.md#source-availability) covers the kernel and describes the source directory and the other places checked.
+
+On 0.4.5, `deckard-boot-firmware` isn't installed. `/boot/bootfw.tar.xz`, `/boot/uboot.env` and `/boot/uboot_ev3.img` belong to `deckard-uboot`, which has the same package description: "Deckard second-stage bootloader and firmware".
+
+| Installed package (0.4.5) | License field | License files | Source package listed |
+|---|---|---|---|
+| `deckard-uboot` 20260908.1-2 | `GPL-2.0+`, `BSD`, `OFL-1.1` | `OFL.txt` only | Not this version. There are eight newer packages, 20261012.2-2 to 20261119.1-1. |
+| `deckard-uboot-splctl` 20260128.3-2 | `GPL-2.0+`, `no-source-release` | None | `20260128.3-6`: same tag, newer package release |
+
+- **What the source packages contain.** Nothing in them was built or run.
+  - `deckard-uboot-splctl-20260128.3-6` (110 KB, read whole) has a PKGBUILD (`license=('GPL-2.0+')`) and a bare git repository with the tag `20260128.3`.
+  - Of `deckard-uboot-20261119.1-1` (340 MiB), only the first 34 MB was read. It has a PKGBUILD (`license=('GPL-2.0+' 'BSD' 'OFL-1.1')`) and a bare git mirror (`+refs/*:refs/*`) of `deckard/deckardos/u-boot`. That mirror's pack index lists commit `bb0a2a01cb6d`, the hash in the 0.4.5 version string, and its root tree object. Whether the mirror holds that commit's complete tree wasn't checked.
+- **`deckard-uboot` vs `deckard-boot-firmware`.** Comments in the 20261119.1-1 PKGBUILD say the package installs intermediate files under `/usr/lib/u-boot/`, which must be further wrapped and deployed, and that a typical user device installs `deckard-boot-firmware` instead. How the two packages relate on 0.4.5, where `deckard-uboot` owns `/boot/bootfw.tar.xz`, wasn't determined.
+- **Installed package URLs (0.4.5).**
+  - `deckard-uboot` gives `https://gitlab.steamos.cloud/deckard/deckardos/u-boot/-/tree/$_srctag`, with a literal, unexpanded `$_srctag`.
+  - `deckard-uboot-splctl` gives `https://gitlab.steamos.cloud/deckard/deckardos/deckard-uboot-splctl/-/tree/20260128.3`.
+  - Anonymous GitLab API requests for both projects return `404 Project Not Found`, which GitLab returns for private and missing projects alike.
+- **Version string.** On 0.4.5, `/boot/ubootrelease.txt` and `/proc/device-tree/chosen/u-boot,version` both read `2025.07-rc3-00634-gbb0a2a01cb6d`. The 0.5.9 build's full string wasn't recorded.
+- **Third-party mirror.** [evlaV/deckard-u-boot](https://github.com/evlaV/deckard-u-boot) on GitHub isn't Valve's and wasn't reviewed. The only check made was that it contains commit `bb0a2a01cb6d`.
+
+### In upstream U-Boot
+
+**Tag: Public (upstream).** On U-Boot's GitHub mirror, [`u-boot/u-boot`](https://github.com/u-boot/u-boot/tree/c1958b5f6cce), branch `main` at `c1958b5f6cce` (2026-11-19) has generic SM8650 support: `configs/qcom_sm8650_defconfig` and SM8650 clock, pin-control and interconnect drivers. It has no Frame board:
+
+- No path in the tree contains `deckard`. The only Valve board in its device-tree copy is the Steam Link.
+- There's no `cmd/splctl.c`.
+- U-Boot's copy of the Linux device trees (`dts/upstream/src/arm64/qcom/`) doesn't include `sm8650-valve-deckard.dts`. Linux added that file in v7.4-rc1 ([Kernel → In mainline Linux](kernel.md#in-mainline-linux)).
+
 ## Interpretation
 
 *This section is interpretation, not observation. It combines the facts above with general knowledge and may be wrong.*
@@ -670,7 +711,9 @@ These weren't settled by reading files and logs, including in the later read-onl
 - The role of `bootenv`, `bootenvb`, `uefivarstore`, `cdt`, `ddr`, `xblramdump`, `toolsfv` and `adpd`
 - Whether any signature check covers the SPL, U-Boot proper or the kernel
 - What reads `u-boot,charger`, `u-boot,display`, `u-boot,pon-trigger-smpl` and `u-boot,oldrootfssupport`, and what creates `u-boot,disable-adb` and `u-boot,disable-ncm`
-- What happens during an actual update. None was installed.
+- What happens during an actual update. None was watched while it ran. Later installs show up in the RAUC journal, but only its success lines were read ([Methodology](methodology.md#source-availability-check)).
+- Which `deckard-boot-firmware`, `deckard-uboot` and `deckard-uboot-splctl` versions the 0.5.9 build had, including its full U-Boot version string, and whether any listed source package matches them
+- Whether the U-Boot mirror in the `deckard-uboot` source package holds the 0.4.5 commit's complete tree
 
 ---
 

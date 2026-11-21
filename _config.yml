@@ -142,12 +142,12 @@ defaults:
     values:
       title: Kernel
       nav_order: 16
-      description: The Steam Frame's Linux 7.2 kernel — Valve-written drivers, the device-tree hardware map, sysfs knobs, build options and the kernel command line.
+      description: The Steam Frame's Linux 7.2 kernel — Valve-written drivers, the device-tree hardware map, sysfs knobs, build options, the command line, and source and mainline status.
   - scope: { path: "docs/boot.md" }
     values:
       title: Boot
       nav_order: 17
-      description: Steam Frame boot sequence — boot firmware, U-Boot SPL and U-Boot, A/B slot state and splctl, RAUC updates, the initramfs and the bootloader's device-tree flags.
+      description: Steam Frame boot sequence — boot firmware, U-Boot SPL and U-Boot, A/B slot state and splctl, RAUC updates, the initramfs, the bootloader's device-tree flags, and source and upstream status.
   - scope: { path: "docs/firmware.md" }
     values:
       title: Firmware

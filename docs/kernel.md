@@ -1,8 +1,8 @@
 # The kernel
 
-The Frame runs Linux 7.2 from Valve's own tree, packaged as `linux-72-deckard`. The package metadata points to `gitlab.steamos.cloud/deckard/deckardos/linux-valve`. Whether that repository is publicly reachable wasn't checked. This page covers what's visible from the running system: the build config, the drivers Valve added, how the hardware is described in the device tree, and the sysfs knobs those drivers expose.
+The Frame runs Linux 7.2 from Valve's own tree, packaged as `linux-72-deckard`. The package metadata points to `gitlab.steamos.cloud/deckard/deckardos/linux-valve`, which isn't publicly reachable, but Valve publishes source packages for many builds of this kernel elsewhere ([Source availability](#source-availability)). This page covers what's visible from the running system (plus public source listings, in [Source availability](#source-availability)): the build config, the drivers Valve added, how the hardware is described in the device tree, and the sysfs knobs those drivers expose.
 
-Everything here is **Internal**. Driver names, sysfs attributes and device-tree layout can change with any kernel update.
+Everything here is **Internal** except [In mainline Linux](#in-mainline-linux), which describes upstream code. Driver names, sysfs attributes and device-tree layout can change with any kernel update.
 
 ## Where to look
 
@@ -134,6 +134,47 @@ The command line comes from a format string in U-Boot proper. The full line, whe
 ## Controllers and `hid-steam`
 
 `hid_steam` is built in (modinfo description "HID driver for Valve Steam Controller"). Its modinfo aliases cover USB product IDs `28de:1102`, `28de:1142` and `28de:1205`. No `/dev/hidraw*` nodes exist, and the Frame controllers are handled by SteamVR over SPI instead ([controllers](controllers.md)).
+
+## Source availability
+
+Checked on 2026-11-21, with the headset on SteamOS 0.4.5 (stable), not the 0.5.9 beta the rest of this page describes. Installed-package details are from 0.4.5 ([Methodology](methodology.md#source-availability-check)).
+
+- **The 0.5.9 beta kernel has a source package.** `linux-72-deckard 7.2.0+g344f27110f05`, the build this page describes, is in Valve's [source directory](https://holo-packages.steamos.cloud/archlinux-deckard-hotfixes/source/).
+- **The 0.4.5 stable kernel isn't listed under its own version.** No source package is named for `linux-618-deckard 6.18.0+ge66bc2ca6f8c`. The two kernel packages sampled carry a git mirror of Valve's kernel repository. Whether any listed package's mirror contains that commit wasn't determined. A third-party mirror, not Valve's, does ([below](#third-party-mirrors)).
+- **Mainline Linux has a device tree for the Frame** since v7.4-rc1, but none of the Valve-written drivers above ([In mainline Linux](#in-mainline-linux)).
+
+- **Valve's source directory.** [`holo-packages.steamos.cloud/archlinux-deckard-hotfixes/source/`](https://holo-packages.steamos.cloud/archlinux-deckard-hotfixes/source/) is an anonymously readable directory of Arch source packages (`.src.tar.gz`). Valve's public [`deckard-pacman-src`](https://gitlab.steamos.cloud/frame-public/frame-developer-tools/-/blob/main/pacman/deckard-pacman-src) script (in frame-developer-tools) names the `archlinux-deckard-hotfixes` repository on this server, and `source/` is a subdirectory of it.
+  - The directory lists 24 `linux-72-deckard` and 12 `linux-618-deckard` source packages. Other packages built from the same commits (`-hwdebug`, `v4l2loopback`, `linux-api-headers`, `linux-tools`) aren't counted.
+  - `linux-72-deckard-7.2.0+g344f27110f05-1` is 2.5 GiB. Only its first 4 MB was read. That part contains a `.SRCINFO`, a PKGBUILD (`license=(GPL-2.0-only)`) and a bare git mirror (`+refs/*:refs/*`) of `deckard/deckardos/linux-valve-publicly-released-branches`.
+  - The first 256 KB of a second package, `linux-618-deckard-6.18.0+g733a4be78129-4`, shows the same kind of mirror.
+- **Installed package metadata.** `pacman -Qi linux-618-deckard` gives the URL `https://gitlab.steamos.cloud/deckard/deckardos/linux-valve/-/tree/e66bc2ca6f8ca6baa5260c69c9b79dc01a6238b9` and the license field `GPL-2.0-only`, `no-source-release`. Its file list (`pacman -Ql`) has no license or `COPYING` file.
+- **Valve's GitLab.** Anonymous API requests for `deckard/deckardos/linux-valve`, `deckard/deckardos/linux-valve-publicly-released-branches` and every PKGBUILD repository that `deckard-pacman-src` can print return `404 Project Not Found`. GitLab returns that for private and missing projects alike.
+  - None of the 46 public projects is a kernel tree, judged by name and description.
+  - The Frame-related public projects are the Frame's [CAD and electrical references](https://gitlab.steamos.cloud/SteamHardware/SteamFrame) and the [`frame-public`](https://gitlab.steamos.cloud/frame-public) group (Lepton, Waydroid forks, Android Vulkan headers, frame-developer-tools).
+  - Separately, [`holo/holo-core-aarch64-preview`](https://gitlab.steamos.cloud/holo/holo-core-aarch64-preview) is an Arch Linux aarch64 port. Its only kernel is Arch's `linux` 6.17.8.arch1 package, built from the kernel.org tarball plus Arch's patch.
+- **Steam Deck source mirror.** [`steamdeck-packages.steamos.cloud/archlinux-mirror/sources/`](https://steamdeck-packages.steamos.cloud/archlinux-mirror/sources/) has 30 directories, all `holo-*` or `jupiter-*`. The `jupiter-*` directories hold the Steam Deck's kernels (`linux-neptune-*`). No listing mentions `deckard`.
+- <a id="third-party-mirrors"></a>**Third-party mirrors.** On GitHub, evlaV publishes [evlaV/deckard](https://github.com/evlaV/deckard), which its README says is generated from Valve's source directory, and [evlaV/deckard-linux](https://github.com/evlaV/deckard-linux). These aren't Valve's and weren't reviewed. The only check made was that `deckard-linux` contains commit `e66bc2ca6f8c`, the 0.4.5 kernel. A U-Boot mirror is on [Boot → Source availability](boot.md#source-availability).
+
+### In mainline Linux
+
+**Tag: Public (upstream).** As of `torvalds/linux` master `c44104f3642d` (2026-11-21):
+
+- **The board is described.** Two commits from Linaro, authored 2026-09-23, first appear in v7.4-rc1:
+  - [`abbbaa99ac66`](https://git.kernel.org/torvalds/c/abbbaa99ac66) adds the compatible `valve,deckard` to `Documentation/devicetree/bindings/arm/qcom.yaml`.
+  - [`f905cb6e600a`](https://git.kernel.org/torvalds/c/f905cb6e600a) adds `arch/arm64/boot/dts/qcom/sm8650-valve-deckard.dts` (model `Valve Deckard`, copyright Valve). Its commit message lists "initial support" for reserved memory, regulators, GPIO keys, PMIC functions and ADC channels, UFS, USB gadget, WCN7850 Wi-Fi and Bluetooth, I²C and the SD card slot. Its Link tag points to [patch 2 of the v2 series](https://lore.kernel.org/r/20260923-topic-sm8650-deckard-initial-dt-v2-2-8361c4548efa@linaro.org).
+- **The headset doesn't boot that device tree.** Its top-level compatible is `qcom,sm8650-dv1`, `qcom,sm8650`, not `valve,deckard`.
+- **The Valve-written drivers aren't there.** Of the source paths in the [Valve-written drivers](#valve-written-drivers) table, only `nex10000ub-regulator` has a mainline file of the same name, and that file is a different driver (see the table below).
+- **Commit search.** GitHub commit search of mainline for `deckard` and `Steam Frame` finds only the two commits above, the merges that carry them, and a 2025 `drm/msm/dpu` commit whose patch link (a Linaro message ID) contains `hmd-deckard`.
+- **Mailing lists.** Whether Valve has posted any of its own drivers to a kernel mailing list wasn't determined. The archives couldn't be searched ([Methodology](methodology.md#source-availability-check)).
+
+Of the chips in [Valve-written drivers](#valve-written-drivers) and [Other Frame-specific drivers](#other-frame-specific-drivers-in-the-tree), four have a mainline driver, but not the one the headset runs. The path, compatible or supported chips differ:
+
+| Chip | On the Frame (0.4.5, kernel 6.18.0) | In mainline |
+|---|---|---|
+| Nexperia NEX10000UB | `drivers/regulator/nex10000ub-regulator`, `author=Valve`, compatibles `nexperia,nex10000ub`, `nexperia,nex10000aub` | `drivers/regulator/nex10000ub-regulator.c` ("NEX10000UB regulator driver"), compatible `nexperia,nex10000ub`, from Linaro, first in v7.4-rc1 |
+| Allegro ALS31300 | `drivers/input/misc/als31300` (input device), compatible `allegro,als31300` | `drivers/iio/magnetometer/als31300.c` (IIO), compatibles `allegromicro,als31300-*`, from Linaro (2024). Same module description. The mainline Deckard device tree uses it (`allegromicro,als31300-500`). |
+| Maxim fuel gauge (the Frame's is a [MAX17320](#other-frame-specific-drivers-in-the-tree)) | `max1720x_battery`, crediting Maxim: "MAX17201/5, MAX17300/1/2/3, MAX17320 and MAX17330/2/5" | `drivers/power/supply/max1720x_battery.c`: same module name, "MAX17201/MAX17205" only (compatible `maxim,max17201`) |
+| OmniVision OG01A1B | `drivers/media/i2c/og01a1b-a` ("og01a1b MIPI Camera Subdev Driver"), compatible `ovti,og01a1bx` | `drivers/media/i2c/og01a1b.c` ("OmniVision OG01A1B sensor driver"), compatible `ovti,og01a1b` |
 
 ## Interpretation
 
